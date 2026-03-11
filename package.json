@@ -1,0 +1,36 @@
+{
+  "name": "gulf-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --no-lint",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "isomorphic-dompurify": "^2.35.0",
+    "jodit-react": "^5.2.38",
+    "jspdf": "^4.2.0",
+    "next": "^15.5.12",
+    "react": "^19.1.2",
+    "react-dom": "^19.1.2",
+    "react-hook-form": "^7.66.0",
+    "recharts": "^3.4.1",
+    "sonner": "^1.7.4",
+    "swiper": "^12.0.3",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "19.2.6",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
