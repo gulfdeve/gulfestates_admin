@@ -1,5 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    // Proxy /api/* requests to the backend (server-to-server bypasses CORS).
+    // On production set NEXT_PUBLIC_API_URL="" so client builds relative URLs.
+    // On localhost keep NEXT_PUBLIC_API_URL="http://localhost:5000" for direct access.
+    const backendUrl =
+      process.env.BACKEND_API_URL || "https://backend.gulfestates.ae";
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
