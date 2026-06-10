@@ -40,6 +40,16 @@ const nextConfig = {
         hostname: 'localhost',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '/**',
+      },
     ],
   },
   async headers() {
@@ -54,7 +64,7 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com",
               "worker-src 'self' blob:",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://cloudinary.com https://images.unsplash.com https://unsplash.com https://gulfestates.ae https://www.gulfestates.ae",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://cloudinary.com https://images.unsplash.com https://unsplash.com https://gulfestates.ae https://www.gulfestates.ae https://via.placeholder.com https://placehold.co",
               "media-src 'self' blob: data: https://gulfestates.ae https://www.gulfestates.ae https://res.cloudinary.com https://cloudinary.com",
               "font-src 'self' data:",
               "connect-src 'self' http://localhost:5050 https://backend.gulfestates.ae https://admin.gulfestates.ae https://www.gulfestates.ae",
