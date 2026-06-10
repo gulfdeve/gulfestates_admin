@@ -52,11 +52,12 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com",
+              "worker-src 'self' blob:",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://res.cloudinary.com https://cloudinary.com https://images.unsplash.com https://unsplash.com https://gulfestates.ae https://www.gulfestates.ae",
               "media-src 'self' blob: data: https://gulfestates.ae https://www.gulfestates.ae https://res.cloudinary.com https://cloudinary.com",
               "font-src 'self' data:",
-              "connect-src 'self' http://localhost:5000 https://backend.gulfestates.ae https://backend.gulf.smbdigitalzone.com",
+              "connect-src 'self' http://localhost:5050",
               "frame-src 'none'",
               "object-src 'none'",
               "base-uri 'self'",
