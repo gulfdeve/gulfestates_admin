@@ -33,7 +33,7 @@ export default function ProtectedLayout({
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.gulf.smbdigitalzone.com";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.gulfestates.ae";
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
