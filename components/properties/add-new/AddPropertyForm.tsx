@@ -54,6 +54,77 @@ interface AddPropertyFormProps {
   lang: "en" | "es" | "fr";
   propertyId?: string;
 }
+
+const isRemoteImageUrl = (url: string) =>
+  url.startsWith("http://") || url.startsWith("https://");
+
+type AppendPropertyImagesOptions = {
+  imageValue: FileList | null | undefined;
+  imagesValue: FileList | null | undefined;
+  mainImagePreview: string | null;
+  additionalImagesPreviews: string[];
+  isEditMode: boolean;
+};
+
+type AppendPropertyImagesResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+function appendPropertyImagesToFormData(
+  formData: FormData,
+  options: AppendPropertyImagesOptions
+): AppendPropertyImagesResult {
+  const {
+    imageValue,
+    imagesValue,
+    mainImagePreview,
+    additionalImagesPreviews,
+    isEditMode,
+  } = options;
+
+  const newMainFile = imageValue?.length ? imageValue[0] : null;
+  const existingMainUrl =
+    mainImagePreview && isRemoteImageUrl(mainImagePreview) ? mainImagePreview : null;
+  let remainingAdditionalUrls = additionalImagesPreviews.filter(isRemoteImageUrl);
+  const newAdditionalFiles =
+    imagesValue && imagesValue.length > 0 ? Array.from(imagesValue) : [];
+
+  if (newMainFile) {
+    formData.append("image", newMainFile);
+  } else if (existingMainUrl) {
+    formData.append("image", existingMainUrl);
+  } else if (remainingAdditionalUrls.length > 0) {
+    formData.append("image", remainingAdditionalUrls[0]);
+    remainingAdditionalUrls = remainingAdditionalUrls.slice(1);
+  } else if (newAdditionalFiles.length > 0) {
+    formData.append("image", newAdditionalFiles[0]);
+    const restNewFiles = newAdditionalFiles.slice(1);
+    remainingAdditionalUrls.forEach((url) => formData.append("images", url));
+    restNewFiles.forEach((file) => formData.append("images", file));
+    if (isEditMode && remainingAdditionalUrls.length === 0 && restNewFiles.length === 0) {
+      formData.append("images", JSON.stringify([]));
+    }
+    return { ok: true };
+  } else if (isEditMode) {
+    formData.append("image", "");
+  } else {
+    return {
+      ok: false,
+      error:
+        "Main image is required. Please upload a main image (max 1MB) or at least one additional image.",
+    };
+  }
+
+  remainingAdditionalUrls.forEach((url) => formData.append("images", url));
+  newAdditionalFiles.forEach((file) => formData.append("images", file));
+
+  if (isEditMode && remainingAdditionalUrls.length === 0 && newAdditionalFiles.length === 0) {
+    formData.append("images", JSON.stringify([]));
+  }
+
+  return { ok: true };
+}
+
 export default function AddPropertyForm({ lang, propertyId }: AddPropertyFormProps) {
   const t = translations[lang];
   const router = useRouter();
@@ -106,11 +177,14 @@ export default function AddPropertyForm({ lang, propertyId }: AddPropertyFormPro
         if (additionalImages && additionalImages.length > 0) {
           return true;
         }
+        if (additionalImagesPreviews.length > 0) {
+          return true;
+        }
         // If no images at all, return error
         return "Main image is required. Please upload a main image (max 1MB) or at least one additional image.";
       }
     });
-  }, [register, mainImagePreview]);
+  }, [register, mainImagePreview, additionalImagesPreviews]);
 
   const [fileNames, setFileNames] = useState({
     brochure: "",
@@ -393,51 +467,18 @@ console.log({item});
       const imageValue = data.image || watch("image");
       const imagesValue = data.images || watch("images");
 
-      // Check if main image exists (new upload or existing in edit mode)
-      const hasNewImage = imageValue && imageValue.length > 0;
-      const hasExistingImage = isEditMode && mainImagePreview && typeof mainImagePreview === 'string' && mainImagePreview.startsWith('http');
-      
-      // Collect additional images files
-      const additionalImagesFiles: File[] = [];
-      if (imagesValue && imagesValue.length > 0) {
-        for (let i = 0; i < imagesValue.length; i++) {
-          additionalImagesFiles.push(imagesValue[i]);
-        }
-      }
+      const imageAppendResult = appendPropertyImagesToFormData(formData, {
+        imageValue,
+        imagesValue,
+        mainImagePreview,
+        additionalImagesPreviews,
+        isEditMode,
+      });
 
-
-      // Determine main image: new upload > existing image > first additional image
-      let mainImageSet = false;
-      
-      if (hasNewImage && imageValue && imageValue.length > 0) {
-        // Use newly uploaded main image
-        formData.append("image", imageValue[0]);
-        mainImageSet = true;
-      } else if (hasExistingImage && isEditMode && mainImagePreview) {
-        // In edit mode, if no new image uploaded but existing image exists, send it as URL string in body
-        // Note: FormData.append with string value goes to req.body, not req.files
-        formData.append("image", mainImagePreview);
-        mainImageSet = true;
-      } else if (additionalImagesFiles.length > 0) {
-        // Fallback: Use first image from additional images as main image
-        formData.append("image", additionalImagesFiles[0]);
-        mainImageSet = true;
-        // Add remaining images as additional images (skip the first one)
-        for (let i = 1; i < additionalImagesFiles.length; i++) {
-          formData.append("images", additionalImagesFiles[i]);
-        }
-      } else {
-        // No images at all - show error
-        setError("Main image is required. Please upload a main image (max 1MB) or at least one additional image.");
+      if (!imageAppendResult.ok) {
+        setError(imageAppendResult.error);
         setLoading(false);
         return;
-      }
-
-      // Add remaining additional images (if main image was set from new/existing, not from fallback)
-      if (mainImageSet && (hasNewImage || hasExistingImage) && additionalImagesFiles.length > 0) {
-        for (let i = 0; i < additionalImagesFiles.length; i++) {
-          formData.append("images", additionalImagesFiles[i]);
-        }
       }
 
       // Add brochure file - prioritize new file upload over existing URL
@@ -516,30 +557,17 @@ console.log({item});
           }
 
           const propertyFormData = new FormData();
-          // Handle main image with fallback
-          if (hasNewImage && imageValue && imageValue.length > 0) {
-            propertyFormData.append("image", imageValue[0]);
-            // Add all additional images
-            if (additionalImagesFiles.length > 0) {
-              for (let i = 0; i < additionalImagesFiles.length; i++) {
-                propertyFormData.append("images", additionalImagesFiles[i]);
-              }
-            }
-          } else if (hasExistingImage) {
-            propertyFormData.append("image", mainImagePreview);
-            // Add all additional images
-            if (additionalImagesFiles.length > 0) {
-              for (let i = 0; i < additionalImagesFiles.length; i++) {
-                propertyFormData.append("images", additionalImagesFiles[i]);
-              }
-            }
-          } else if (additionalImagesFiles.length > 0) {
-            // Fallback: Use first image as main
-            propertyFormData.append("image", additionalImagesFiles[0]);
-            // Add remaining as additional
-            for (let i = 1; i < additionalImagesFiles.length; i++) {
-              propertyFormData.append("images", additionalImagesFiles[i]);
-            }
+          const propertyImageResult = appendPropertyImagesToFormData(propertyFormData, {
+            imageValue,
+            imagesValue,
+            mainImagePreview,
+            additionalImagesPreviews,
+            isEditMode,
+          });
+          if (!propertyImageResult.ok) {
+            setError(propertyImageResult.error);
+            setLoading(false);
+            return;
           }
           // Add brochure file - prioritize new file upload over existing URL
           if (brochureFile) {
@@ -678,30 +706,17 @@ console.log({item});
           }
 
           const offPlanFormData = new FormData();
-          // Handle main image with fallback
-          if (hasNewImage && imageValue && imageValue.length > 0) {
-            offPlanFormData.append("image", imageValue[0]);
-            // Add all additional images
-            if (additionalImagesFiles.length > 0) {
-              for (let i = 0; i < additionalImagesFiles.length; i++) {
-                offPlanFormData.append("images", additionalImagesFiles[i]);
-              }
-            }
-          } else if (hasExistingImage) {
-            offPlanFormData.append("image", mainImagePreview);
-            // Add all additional images
-            if (additionalImagesFiles.length > 0) {
-              for (let i = 0; i < additionalImagesFiles.length; i++) {
-                offPlanFormData.append("images", additionalImagesFiles[i]);
-              }
-            }
-          } else if (additionalImagesFiles.length > 0) {
-            // Fallback: Use first image as main
-            offPlanFormData.append("image", additionalImagesFiles[0]);
-            // Add remaining as additional
-            for (let i = 1; i < additionalImagesFiles.length; i++) {
-              offPlanFormData.append("images", additionalImagesFiles[i]);
-            }
+          const offPlanImageResult = appendPropertyImagesToFormData(offPlanFormData, {
+            imageValue,
+            imagesValue,
+            mainImagePreview,
+            additionalImagesPreviews,
+            isEditMode,
+          });
+          if (!offPlanImageResult.ok) {
+            setError(offPlanImageResult.error);
+            setLoading(false);
+            return;
           }
           // Add brochure file - prioritize new file upload over existing URL
           if (brochureFile) {
@@ -1217,17 +1232,21 @@ console.log({item});
 
   // Remove additional image by index
   const handleRemoveAdditionalImage = (index: number) => {
-    // Remove from preview URLs
-    const updatedPreviews = additionalImagesPreviews.filter((_, i) => i !== index);
-    setAdditionalImagesPreviews(updatedPreviews);
+    const removedPreview = additionalImagesPreviews[index];
+    setAdditionalImagesPreviews((prev) => prev.filter((_, i) => i !== index));
 
-    // Remove from actual files in form
-    const existingFiles = watch("images");
-    if (existingFiles) {
-      const updatedFiles = Array.from(existingFiles).filter(
-        (_, i) => i !== index
-      );
-      setValue("images", updatedFiles as any, { shouldValidate: true });
+    // Only sync FileList when removing a newly uploaded file (blob preview)
+    if (removedPreview?.startsWith("blob:")) {
+      const blobIndexBefore = additionalImagesPreviews
+        .slice(0, index)
+        .filter((src) => src.startsWith("blob:")).length;
+      const existingFiles = watch("images");
+      if (existingFiles?.length) {
+        const updatedFiles = Array.from(existingFiles).filter(
+          (_, i) => i !== blobIndexBefore
+        );
+        setValue("images", updatedFiles as any, { shouldValidate: true });
+      }
     }
   };
 
