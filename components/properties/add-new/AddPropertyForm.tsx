@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import BasicInformation from "./BasicInformation";
 import PricingAndDetails from "./PricingAndDetails";
 import SeoSection from "./SeoSection";
+import RedirectsManager from "./RedirectsManager";
 import { translations } from "@/data/translations";
 import { validateDocumentFile, validateMainImage, validateAdditionalImages, validateQRImage } from "@/utils/fileValidation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -46,6 +47,7 @@ export interface PropertyFormData {
   seoDescription: string;
   seoDescription_fr?: string;
   seoDescription_es?: string;
+  slug?: string;
   rentDuration?: string;
   latitude?: string;
   longitude?: string;
@@ -325,6 +327,7 @@ console.log({item});
             seoSchema: item.seo?.schema?.en ?? "",
             seoSchema_fr: item.seo?.schema?.fr ?? "",
             seoSchema_es: item.seo?.schema?.es ?? "",
+            slug: item.slug?.en || "",
           });
 
           // Set brochure and QR image previews if they exist
@@ -381,6 +384,7 @@ console.log({item});
             seoSchema_fr: item.seo?.schema?.fr ?? "",
             seoSchema_es: item.seo?.schema?.es ?? "",
             rentDuration: item.rentDuration || "",
+            slug: item.slug?.en || "",
           });
 
           // Set brochure and QR image previews if they exist
@@ -902,6 +906,10 @@ console.log({item});
         if (offPlanData.seo) {
           formData.append("seo", JSON.stringify(offPlanData.seo));
         }
+        // Slug is only ever changed explicitly on edit; on create it's auto-generated
+        if (isEditMode && data.slug) {
+          formData.append("slug", JSON.stringify({ en: data.slug }));
+        }
         // Add DLD Permit Number
         if (data.dldPermitNumber) {
           formData.append("dldPermitNumber", data.dldPermitNumber);
@@ -1013,6 +1021,10 @@ console.log({item});
       }
       if (propertyData.seo) {
         formData.append("seo", JSON.stringify(propertyData.seo));
+      }
+      // Slug is only ever changed explicitly on edit; on create it's auto-generated
+      if (isEditMode && data.slug) {
+        formData.append("slug", JSON.stringify({ en: data.slug }));
       }
       // Add DLD Permit Number
       if (data.dldPermitNumber) {
@@ -1365,7 +1377,14 @@ console.log({item});
           errors={errors}
         />
 
-        <SeoSection register={register} errors={errors} />
+        <SeoSection register={register} errors={errors} isEditMode={isEditMode} />
+
+        {isEditMode && propertyId && (
+          <RedirectsManager
+            entityType={watch("category") === "Off Plan" ? "offplan" : "property"}
+            entityId={propertyId}
+          />
+        )}
 
         <div className="flex justify-end gap-4">
           <button
