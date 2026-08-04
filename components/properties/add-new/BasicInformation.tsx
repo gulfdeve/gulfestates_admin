@@ -6,6 +6,7 @@ import { PropertyFormData } from "./AddPropertyForm";
 import Dropdown from "@/components/Dropdown";
 import dynamic from "next/dynamic";
 import { validateDocumentFile, validateQRImage } from "@/utils/fileValidation";
+import { COMMUNITY_CATEGORIES } from "@/utils/communityCategories";
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
@@ -161,6 +162,34 @@ export default function BasicInformation({
           {errors.propertyType && (
             <p className="mt-1 text-sm text-red-500">{errors.propertyType.message as string}</p>
           )}
+        </div>
+
+        {/* Community/Lifestyle Categories - shown on the public homepage's "Find Home" cards */}
+        <div>
+          <label className="block font-medium text-gray-600 mb-1">
+            Lifestyle Categories <span className="text-xs text-gray-500">(Optional)</span>
+          </label>
+          <div className="flex flex-wrap gap-4">
+            {COMMUNITY_CATEGORIES.map(({ value, label }) => {
+              const current: string[] = watch("communityCategories") || [];
+              const isChecked = current.includes(value);
+              return (
+                <label key={value} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      const updated = e.target.checked
+                        ? [...current, value]
+                        : current.filter((v) => v !== value);
+                      setValue("communityCategories", updated, { shouldValidate: true });
+                    }}
+                  />
+                  {label}
+                </label>
+              );
+            })}
+          </div>
         </div>
 
         {/* Category */}

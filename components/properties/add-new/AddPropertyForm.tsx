@@ -38,6 +38,7 @@ export interface PropertyFormData {
   serviceChargesValue: string;
   cityArea: string;
   amenities: string[];
+  communityCategories: string[];
   seoTitle: string;
   seoTitle_fr?: string;
   seoTitle_es?: string;
@@ -373,6 +374,7 @@ console.log({item});
             propertySizeRange: item.size ? String(item.size) : "",
             cityArea: locationEn || locationEs || locationFr || item.location || "",
             amenities: item.amenities || [],
+            communityCategories: item.communityCategories || [],
             developerName: item.agent?.name || "",
             dldPermitNumber: item.dldPermitNumber || "",
             latitude: item.geoLocation?.latitude || "",
@@ -444,6 +446,10 @@ console.log({item});
       // Filter amenities to only include actual amenity names (strings), not boolean values
       const filteredAmenities = Array.isArray(data.amenities)
         ? data.amenities.filter((amenity: any) => typeof amenity === 'string' && amenity !== 'true' && amenity !== 'false')
+        : [];
+
+      const filteredCommunityCategories = Array.isArray(data.communityCategories)
+        ? data.communityCategories
         : [];
 
     
@@ -532,6 +538,7 @@ console.log({item});
               fr: "",
             },
             amenities: filteredAmenities,
+            communityCategories: filteredCommunityCategories,
             ...(data.latitude && data.longitude && {
               geoLocation: {
                 latitude: data.latitude,
@@ -603,6 +610,9 @@ console.log({item});
           propertyFormData.append("description", JSON.stringify(propertyData.description));
           if (propertyData.amenities.length > 0) {
             propertyFormData.append("amenities", JSON.stringify(propertyData.amenities));
+          }
+          if (propertyData.communityCategories.length > 0) {
+            propertyFormData.append("communityCategories", JSON.stringify(propertyData.communityCategories));
           }
           if (propertyData.agent) {
             propertyFormData.append("agent", JSON.stringify(propertyData.agent));
@@ -970,6 +980,7 @@ console.log({item});
           fr: "",
         },
         amenities: filteredAmenities,
+        communityCategories: filteredCommunityCategories,
         ...(data.latitude && data.longitude && {
           geoLocation: {
             latitude: data.latitude,
@@ -1015,6 +1026,9 @@ console.log({item});
       formData.append("description", JSON.stringify(propertyData.description));
       if (propertyData.amenities.length > 0) {
         formData.append("amenities", JSON.stringify(propertyData.amenities));
+      }
+      if (propertyData.communityCategories.length > 0) {
+        formData.append("communityCategories", JSON.stringify(propertyData.communityCategories));
       }
       if (propertyData.agent) {
         formData.append("agent", JSON.stringify(propertyData.agent));
