@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import RouteGuard from "@/components/auth/RouteGuard";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { apiUrl } from "@/utils/apiUrl";
+import { getOffplanDisplayTitle } from "@/utils/offplanTitle";
 
 export default function Home() {
   const today = formatFullDate();
@@ -112,39 +113,53 @@ export default function Home() {
         }
       }
 
-      // Fetch featured off-plan projects
+      // Recent off-plans (admin list — not only featured; imports rarely set featured: true)
       const offPlanResponse = await fetch(
-        apiUrl("/api/offplans/featured?limit=6&locale=en"),
+        apiUrl("/api/offplans?for=buy&admin=true&locale=en&page=1&limit=6"),
         {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            "x-admin-view": "true",
           },
         }
       );
 
       if (offPlanResponse.ok) {
         const offPlanData = await offPlanResponse.json();
-        if (offPlanData.success && offPlanData.data) {
-          // Transform off-plan data to match OffPlanCard format
-          const transformed = Array.isArray(offPlanData.data)
-            ? offPlanData.data.map((project: any) => {
-              const title = typeof project.title === 'string'
-                ? project.title
-                : (project.title?.en || project.title?.fr || project.title?.es || "");
-              const location = typeof project.location === 'string'
-                ? project.location
-                : (project.location?.en || project.location?.fr || project.location?.es || "");
+        if (offPlanData.success && Array.isArray(offPlanData.data)) {
+          const offplanTotal =
+            typeof offPlanData.total === "number" ? offPlanData.total : 0;
+          setStats((prev) => ({
+            ...prev,
+            totalListings: (prev.totalListings || 0) + offplanTotal,
+          }));
+
+          const transformed = offPlanData.data
+            .filter((project: any) => getOffplanDisplayTitle(project) !== "")
+            .map((project: any) => {
+              const title = getOffplanDisplayTitle(project);
+              const location =
+                typeof project.location === "string"
+                  ? project.location
+                  : project.location?.en ||
+                    project.languages?.location?.en ||
+                    project.location?.fr ||
+                    project.location?.es ||
+                    "";
 
               return {
                 id: project._id || project.id,
-                title: title, // Use title for OffPlanCard
-                name_en: project.title?.en || title,
-                name_es: project.title?.es,
-                name_fr: project.title?.fr,
+                title,
+                name_en:
+                  project.languages?.title?.en ||
+                  project.title?.en ||
+                  title,
+                name_es: project.languages?.title?.es || project.title?.es,
+                name_fr: project.languages?.title?.fr || project.title?.fr,
                 developer: project.developer || "",
-                location: location,
+                location,
                 type: project.type || "",
                 handover: project.handover || "",
                 priceFrom: project.priceFrom || "N/A",
@@ -153,13 +168,12 @@ export default function Home() {
                 bathRange: project.bathRange || "N/A",
                 sizeRange: project.sizeRange || "N/A",
                 status: project.status || "Available",
-                progress: 0, // Not available in model
-                units: 0, // Not available in model
+                progress: 0,
+                units: 0,
                 price: project.priceFrom || "N/A",
                 image: project.image || "/images/data.jpg",
               };
-            })
-            : [];
+            });
           setOffPlanProjects(transformed);
         }
       }

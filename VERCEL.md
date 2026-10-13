@@ -7,7 +7,7 @@ Project: **gulf-sea/gulfestates-admin** (linked via `vercel link`).
 | Variable | Production value | Status |
 |----------|------------------|--------|
 | `NEXT_PUBLIC_API_URL` | `https://backend.gulfestates.ae` | Recommended (also defaulted at build if empty) |
-| `BACKEND_API_URL` | `https://backend.gulfestates.ae` | Correct — Next.js `/api/*` rewrite proxy |
+| `BACKEND_API_URL` | `https://backend.gulfestates.ae` | Set on Production (Secret) — Next.js `/api/*` rewrite proxy |
 
 Live API root: [https://backend.gulfestates.ae](https://backend.gulfestates.ae)
 

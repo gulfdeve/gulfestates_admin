@@ -14,6 +14,7 @@ import { sanitizeHtml } from "@/utils/htmlCleaner";
 import RouteGuard from "@/components/auth/RouteGuard";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { apiUrl } from "@/utils/apiUrl";
+import { getOffplanDisplayTitle } from "@/utils/offplanTitle";
 
 type Project = {
   id: string;
@@ -195,47 +196,11 @@ function BuyPageContent() {
           `📦 Received ${data.data.length} offplans from API (page ${data.page}, total ${data.total})`
         );
 
-        // For admin view, show all offplans that have any title
-        // Filter to show English offplans (those with title.en) but be lenient
-        const englishOffplans = data.data.filter((offplan: any) => {
-          // Get English title from various possible structures
-          let titleEn = "";
-
-          if (typeof offplan.title === "string") {
-            // Title is already localized to English string
-            titleEn = offplan.title.trim();
-          } else if (offplan.languages?.title?.en) {
-            // Check languages object
-            titleEn = offplan.languages.title.en.trim();
-          } else if (typeof offplan.title === "object" && offplan.title?.en) {
-            // Check title object directly
-            titleEn = offplan.title.en.trim();
-          }
-
-          const hasEnglishTitle = titleEn !== "";
-
-          if (!hasEnglishTitle) {
-            console.log(
-              "❌ Offplan excluded - no English title:",
-              offplan._id,
-              {
-                title: offplan.title,
-                languages: offplan.languages,
-              }
-            );
-          } else {
-            console.log("✅ Offplan included:", offplan._id, titleEn);
-          }
-
-          return hasEnglishTitle;
-        });
-
-        console.log(
-          `✅ Filtered ${englishOffplans.length} English offplans from ${data.data.length} total`
+        const visibleOffplans = data.data.filter(
+          (offplan: any) => getOffplanDisplayTitle(offplan) !== ""
         );
 
-        // Transform off-plans to match table format
-        const transformedOffPlans: Project[] = englishOffplans.map(
+        const transformedOffPlans: Project[] = visibleOffplans.map(
           (offplan: any) => {
             // Extract price number from priceFrom string if it's a string
             let priceValue = "N/A";
@@ -265,11 +230,7 @@ function BuyPageContent() {
               mappedStatus = "Upcoming";
             }
 
-            // Get title from localized string or languages object
-            const titleEn =
-              typeof offplan.title === "string"
-                ? offplan.title
-                : offplan.languages?.title?.en || offplan.title?.en || "";
+            const titleEn = getOffplanDisplayTitle(offplan);
             const titleEs = offplan.languages?.title?.es || offplan.title?.es;
             const titleFr = offplan.languages?.title?.fr || offplan.title?.fr;
 
