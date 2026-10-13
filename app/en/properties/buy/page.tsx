@@ -13,6 +13,7 @@ import PropertiesFilters from "@/components/properties/PropertiesFilters";
 import { sanitizeHtml } from "@/utils/htmlCleaner";
 import RouteGuard from "@/components/auth/RouteGuard";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { apiUrl } from "@/utils/apiUrl";
 
 type Project = {
   id: string;
@@ -33,7 +34,7 @@ function BuyPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const type = searchParams.get("type") || "ready";
+  const type = searchParams.get("type") || "offplan";
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [offPlanProjects, setOffPlanProjects] = useState<Project[]>([]);
@@ -78,10 +79,10 @@ function BuyPageContent() {
           return;
         }
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
         const response = await fetch(
-          `${API_URL}/api/properties?for=buy&page=${page}&limit=${propertyLimit}&locale=en`,
+          apiUrl(
+            `/api/properties?for=buy&page=${page}&limit=${propertyLimit}&locale=en`
+          ),
           {
             method: "GET",
             headers: {
@@ -152,13 +153,15 @@ function BuyPageContent() {
       setLoading(true);
       const token = localStorage.getItem("adminToken");
       if (!token) {
+        setError("Not authenticated");
+        setLoading(false);
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
       const response = await fetch(
-        `${API_URL}/api/offplans?for=buy&admin=true&locale=en&page=${page}&limit=${offPlanLimit}`,
+        apiUrl(
+          `/api/offplans?for=buy&admin=true&locale=en&page=${page}&limit=${offPlanLimit}`
+        ),
         {
           method: "GET",
           headers: {
@@ -321,10 +324,8 @@ function BuyPageContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       // Pass locale=en to delete only English version
-      const response = await fetch(
-        `${API_URL}/api/properties/${id}?locale=en`,
+      const response = await fetch(apiUrl(`/api/properties/${id}?locale=en`),
         {
           method: "DELETE",
           headers: {
@@ -356,17 +357,13 @@ function BuyPageContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(
-        `${API_URL}/api/properties/${id}?locale=en`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(apiUrl(`/api/properties/${id}?locale=en`), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       const data = await response.json();
 
@@ -403,11 +400,9 @@ function BuyPageContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
       // Delete all selected properties with locale=en
       const deletePromises = ids.map((id) =>
-        fetch(`${API_URL}/api/properties/${id}?locale=en`, {
+        fetch(apiUrl(`/api/properties/${id}?locale=en`), {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -452,9 +447,8 @@ function BuyPageContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       // Pass locale=en to delete only English version
-      const response = await fetch(`${API_URL}/api/offplans/${id}?locale=en`, {
+      const response = await fetch(apiUrl(`/api/offplans/${id}?locale=en`), {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -501,11 +495,9 @@ function BuyPageContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
       // Delete all selected off-plans with locale=en
       const deletePromises = ids.map((id) =>
-        fetch(`${API_URL}/api/offplans/${id}?locale=en`, {
+        fetch(apiUrl(`/api/offplans/${id}?locale=en`), {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -551,8 +543,7 @@ function BuyPageContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/api/offplans/${id}?locale=en`, {
+      const response = await fetch(apiUrl(`/api/offplans/${id}?locale=en`), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

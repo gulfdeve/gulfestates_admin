@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import RouteGuard from "@/components/auth/RouteGuard";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { apiUrl } from "@/utils/apiUrl";
 
 export default function Home() {
   const today = formatFullDate();
@@ -43,10 +44,8 @@ export default function Home() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
       // Fetch dashboard stats
-      const statsResponse = await fetch(`${API_URL}/api/analytics/dashboard`, {
+      const statsResponse = await fetch(apiUrl("/api/analytics/dashboard"), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -71,7 +70,7 @@ export default function Home() {
 
       // Fetch marketing analytics (for visitors, leads, conversion rate, emails)
       const marketingResponse = await fetch(
-        `${API_URL}/api/analytics/marketing?range=This Month`,
+        apiUrl("/api/analytics/marketing?range=This Month"),
         {
           method: "GET",
           headers: {
@@ -96,7 +95,7 @@ export default function Home() {
       }
 
       // Fetch newsletter subscribers count
-      const subscriptionResponse = await fetch(`${API_URL}/api/subscribe`, {
+      const subscriptionResponse = await fetch(apiUrl("/api/subscribe"), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -115,7 +114,7 @@ export default function Home() {
 
       // Fetch featured off-plan projects
       const offPlanResponse = await fetch(
-        `${API_URL}/api/offplans/featured?limit=6&locale=en`,
+        apiUrl("/api/offplans/featured?limit=6&locale=en"),
         {
           method: "GET",
           headers: {
@@ -167,7 +166,7 @@ export default function Home() {
 
       // Fetch recent properties for listing board
       const recentPropsResponse = await fetch(
-        `${API_URL}/api/properties?page=1&limit=5&locale=en`,
+        apiUrl("/api/properties?page=1&limit=5&locale=en"),
         {
           method: "GET",
           headers: {
