@@ -1,18 +1,29 @@
 /** @type {import('next').NextConfig} */
+const PRODUCTION_API_ORIGIN = "https://backend.gulfestates.ae";
+
 const isVercelProduction =
   process.env.VERCEL === "1" && process.env.VERCEL_ENV === "production";
 
+const isVercelDeploy =
+  process.env.VERCEL === "1" && process.env.VERCEL_ENV !== "development";
+
+function resolvePublicApiUrl() {
+  const trimmed = (process.env.NEXT_PUBLIC_API_URL ?? "").trim();
+  if (trimmed && trimmed !== "undefined" && trimmed !== "null") {
+    return trimmed.replace(/\/$/, "");
+  }
+  if (isVercelDeploy) return PRODUCTION_API_ORIGIN;
+  return "";
+}
+
 const nextConfig = {
-  // Ensure client builds never embed "undefined" when Vercel omits NEXT_PUBLIC_API_URL
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
+    NEXT_PUBLIC_API_URL: resolvePublicApiUrl(),
   },
   async rewrites() {
-    // Proxy /api/* requests to the backend (server-to-server bypasses CORS).
-    // On production set NEXT_PUBLIC_API_URL="" so client builds relative URLs.
-    // On localhost keep NEXT_PUBLIC_API_URL="http://localhost:5000" for direct access.
+    // Proxy /api/* → backend (works when client uses relative /api/* URLs).
     const backendUrl =
-      process.env.BACKEND_API_URL || "https://backend.gulfestates.ae";
+      process.env.BACKEND_API_URL || PRODUCTION_API_ORIGIN;
     return [
       {
         source: "/api/:path*",

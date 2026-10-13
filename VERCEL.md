@@ -6,8 +6,10 @@ Project: **gulf-sea/gulfestates-admin** (linked via `vercel link`).
 
 | Variable | Production value | Status |
 |----------|------------------|--------|
-| `NEXT_PUBLIC_API_URL` | *(empty)* | Correct — browser calls same-origin `/api/*` |
-| `BACKEND_API_URL` | `https://backend.gulfestates.ae` | Correct — Next.js rewrites proxy |
+| `NEXT_PUBLIC_API_URL` | `https://backend.gulfestates.ae` | Recommended (also defaulted at build if empty) |
+| `BACKEND_API_URL` | `https://backend.gulfestates.ae` | Correct — Next.js `/api/*` rewrite proxy |
+
+Live API root: [https://backend.gulfestates.ae](https://backend.gulfestates.ae)
 
 Pull locally:
 
@@ -33,3 +35,4 @@ Redeploy **Production** in Vercel (env changes require a new build for `NEXT_PUB
 
 - `NEXT_PUBLIC_API_URL=http://localhost:5050` — breaks all browser API calls
 - Omitting `BACKEND_API_URL` is OK (defaults to `https://backend.gulfestates.ae` in `next.config.mjs`)
+- Omitting `NEXT_PUBLIC_API_URL` on Vercel is OK — build embeds `https://backend.gulfestates.ae`
