@@ -21,6 +21,11 @@ export const checkRouteAccess = (route: string, userRole: string | null): boolea
   // Get allowed routes for the role
   const allowedRoutes = roleAccessMap[userRole] || [];
   
+  // Database backup is superadmin only
+  if (route.includes('/settings/database-backup')) {
+    return userRole === 'superadmin';
+  }
+
   // Settings is accessible to all roles
   if (route.includes('/settings')) {
     return true;
@@ -125,6 +130,10 @@ export const getRequiredRolesForRoute = (route: string): string[] => {
     return ['customer-manager', 'superadmin'];
   }
   
+  if (route.includes('/settings/database-backup')) {
+    return ['superadmin'];
+  }
+
   if (route.includes('/settings')) {
     return ['superadmin', 'admin', 'customer-manager', 'user'];
   }

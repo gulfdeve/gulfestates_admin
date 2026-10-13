@@ -25,6 +25,30 @@ export default function RouteGuard({ children, requiredRole }: RouteGuardProps) 
     return null; // Will be handled by ProtectedLayout
   }
 
+  if (requiredRole && role) {
+    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!allowedRoles.includes(role)) {
+      return (
+        <div className="text-black/80 p-4 min-h-[400px]">
+          <div className="max-w-2xl mx-auto mt-8">
+            <div className="p-6 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h3>
+              <p className="text-red-700 mb-4">
+                You don&apos;t have permission to access this page.
+              </p>
+              <button
+                onClick={() => router.push("/")}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
   if (role && !checkRouteAccess(pathname, role)) {
     return (
       <div className="text-black/80 p-4 min-h-[400px]">

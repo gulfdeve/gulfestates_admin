@@ -215,6 +215,7 @@ const navLinks = [
     subLinks: [
       { label: "Edit Profile", href: "/settings/edit-profile" },
       { label: "Account Settings", href: "/settings/account" },
+      { label: "Database Backup", href: "/settings/database-backup", superadminOnly: true },
     ],
   },
 ];
@@ -416,7 +417,16 @@ export default function Sidebar() {
 
                 {!isDashboard && !isDirectLink && isOpen && subLinks && (
                   <ul className="ml-12 mt-1 space-y-1 text-white/80 w-[78%]">
-                    {subLinks.map(({ label, href, subSubLinks }) => {
+                    {subLinks
+                      .filter(
+                        (link) =>
+                          !("superadminOnly" in link && link.superadminOnly) ||
+                          userRole === "superadmin"
+                      )
+                      .map((link) => {
+                      const { label, href } = link;
+                      const subSubLinks =
+                        "subSubLinks" in link ? link.subSubLinks : undefined;
                       const isNestedOpen = openNestedDropdown === label;
                       return (
                         <li key={label}>
