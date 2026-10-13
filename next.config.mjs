@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
+const isVercelProduction =
+  process.env.VERCEL === "1" && process.env.VERCEL_ENV === "production";
+
 const nextConfig = {
+  // Ensure client builds never embed "undefined" when Vercel omits NEXT_PUBLIC_API_URL
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
+  },
   async rewrites() {
     // Proxy /api/* requests to the backend (server-to-server bypasses CORS).
     // On production set NEXT_PUBLIC_API_URL="" so client builds relative URLs.
@@ -67,7 +74,7 @@ const nextConfig = {
               "img-src 'self' data: blob: https://res.cloudinary.com https://cloudinary.com https://images.unsplash.com https://unsplash.com https://gulfestates.ae https://www.gulfestates.ae https://via.placeholder.com https://placehold.co",
               "media-src 'self' blob: data: https://gulfestates.ae https://www.gulfestates.ae https://res.cloudinary.com https://cloudinary.com",
               "font-src 'self' data:",
-              "connect-src 'self' http://localhost:5050 https://backend.gulfestates.ae https://admin.gulfestates.ae https://www.gulfestates.ae",
+              `connect-src 'self' ${isVercelProduction ? "" : "http://localhost:5000 http://localhost:5050 "}https://backend.gulfestates.ae https://admin.gulfestates.ae https://www.gulfestates.ae`,
               "frame-src 'none'",
               "object-src 'none'",
               "base-uri 'self'",

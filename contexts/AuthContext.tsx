@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { checkRouteAccess } from "@/utils/routeProtection";
+import { apiUrl } from "@/utils/apiUrl";
 
 interface AdminUser {
   _id?: string;
@@ -72,8 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/api/auth/me`, {
+      const response = await fetch(apiUrl("/api/auth/me"), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

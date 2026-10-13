@@ -2,6 +2,7 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/utils/apiUrl";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -28,9 +29,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Replace with your actual API URL
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/api/auth/admin/login`, {
+      const response = await fetch(apiUrl("/api/auth/admin/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

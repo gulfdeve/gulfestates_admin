@@ -3,6 +3,7 @@
 import RouteGuard from "@/components/auth/RouteGuard";
 import { useState } from "react";
 import { toast } from "sonner";
+import { apiUrl } from "@/utils/apiUrl";
 
 function parseFilename(contentDisposition: string | null): string {
   if (!contentDisposition) {
@@ -24,8 +25,7 @@ function DatabaseBackupContent() {
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-      const response = await fetch(`${API_URL}/api/admin/database/backup`, {
+      const response = await fetch(apiUrl("/api/admin/database/backup"), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

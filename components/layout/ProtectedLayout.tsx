@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { apiUrl } from "@/utils/apiUrl";
 
 export default function ProtectedLayout({
   children,
@@ -33,12 +34,11 @@ export default function ProtectedLayout({
         return;
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.gulfestates.ae";
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const response = await fetch(`${API_URL}/api/auth/me`, {
+        const response = await fetch(apiUrl("/api/auth/me"), {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
